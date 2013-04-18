@@ -3,6 +3,8 @@ SB_SL
 
 Status Board panel for SL (Stockholm Buses and Metro)
 
+![SL Panel](http://www.carlfranzon.com/wp-content/uploads/SL-panel.png)
+
 # Status Board Panel for SL Departure Times (Stockholm Buses and Metro system)
 
 ## Introduction
