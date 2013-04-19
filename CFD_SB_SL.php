@@ -147,7 +147,7 @@ aasort($slbusesmetros,"departure");
 <table id="SLRealtime">
     <tr>
         <th style="width:3%"></th>
-        <th style="width:65px;text-align:center"><img src="http://images2.wikia.nocookie.net/__cb20100824161519/logopedia/images/c/ca/SL_logo.svg" height="30px" /></th>
+        <th style="width:73px;text-align:center"><img src="http://images2.wikia.nocookie.net/__cb20100824161519/logopedia/images/c/ca/SL_logo.svg" height="30px" /></th>
         <th style="padding-left:20"><?php echo 'Avgångar för: '.$slstation->get('Name').' om '.$distance.' min'; ?></th>
         <th style="width:12%;text-align:center">min.</th>
     </tr>
