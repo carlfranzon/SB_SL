@@ -19,7 +19,7 @@ With that said, this panel will show all upcoming departures from any station in
 
 2. Open Status Board on your iPad and add a new table panel. Tap on it and edit the url to point to your uploaded CFD_SB_SL.php file (don't forget to add all mandatory parameters) such as:
 
-<pre>http://YOURDOMAIN/CFD_SB_SL.php?station=9001&dist=10&key=123654abdfgdfr34ss89700</pre>
+<pre>http://YOURDOMAIN/CFD_SB_SL.php?station=9001&dist=10&key=123654abdfgdfr34ss89700&sitekey=123654abdfgdfr34ss89700</pre>
 
 3. Enjoy, and never miss the bus again!
 
@@ -54,13 +54,20 @@ The PHP script takes a number of parameters, one mandatory, two optional. Below 
 		<td>string</td>
 		<td>yes</td>
 		<td>123654abdfgdfr34ss89700</td>
-		<td>This is an api key you need to signup for at the trafik-lab site. http://trafiklab.se</td>
+		<td>This is an api key you need to signup for at the trafik-lab site, called "SL Realtidsinformation 3". http://trafiklab.se</td>
+	</tr>
+	<tr>
+		<td>sitekey</td>
+		<td>string</td>
+		<td>yes</td>
+		<td>123654abdfgdfr34ss89700</td>
+		<td>This is an api key you need to signup for at the trafik-lab site, called "SL Platsuppslag". http://trafiklab.se</td>
 	</tr>
 </table>
 
 ## Notes
 
-If you find any bugs or issues, such as weird destination names or times, please file issues here at github. Due to the rather rudimentary API trafiklab supplies there is some RegEX magic that parses out destination names and times, all from one string(!), and as I haven't tested all stations, you might find something.
+If you find any bugs or issues, such as weird destination names or times, please file issues here at github. The API at Trafiklab has recently been updated, and as I haven't tested all stations, you might find something.
 
 
 
