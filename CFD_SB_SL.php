@@ -2,6 +2,7 @@
 
 define('api_key', $_GET['key']);
 define('station',$_GET['station']);
+define('site_key', $_GET['sitekey']);
 
 if(isset($_GET['dist'])):
 $distance = $_GET['dist'];
@@ -10,29 +11,39 @@ else:
 endif;
 
 $api_key = api_key;
+$site_key = site_key;
+$station = station;
 
 
 require 'coreylib.php';
 if($distance >= 30){
-    $api_buses = new clApi('https://api.trafiklab.se/sl/realtid/GetDpsDepartures.xml?&siteId='.station.'&key='.$api_key.'&timeWindow=60', false);
+	$api = new clApi('https://api.sl.se/api2/realtimedepartures.xml?key='.$api_key.'&siteid='.$station.'&timewindow=60', false);
+    //$api_buses = new clApi('https://api.trafiklab.se/sl/realtid/GetDpsDepartures.xml?&siteId='.station.'&key='.$api_key.'&timeWindow=60', false);
 } else {
-    $api_buses = new clApi('https://api.trafiklab.se/sl/realtid/GetDpsDepartures.xml?&siteId='.station.'&key='.$api_key, false);
+	$api = new clApi('https://api.sl.se/api2/realtimedepartures.xml?key='.$api_key.'&siteid='.$station, false);
+    //$api_buses = new clApi('https://api.trafiklab.se/sl/realtid/GetDpsDepartures.xml?&siteId='.station.'&key='.$api_key, false);
 }
 
-$slbuses = $api_buses->parse();
+//$slbuses = $api_buses->parse();
 
-$api_metros = new clApi('https://api.trafiklab.se/sl/realtid/GetDepartures.xml?siteId='.station.'&key='.$api_key, false);
-$slmetros = $api_metros->parse();
+//$api_metros = new clApi('https://api.trafiklab.se/sl/realtid/GetDepartures.xml?siteId='.station.'&key='.$api_key, false);
+//$slmetros = $api_metros->parse();
+
+$sl1 = $api->parse();
+$sl = $sl1->get('ResponseData');
 
 
-if ($slbuses or $slmetros) {
+if ($sl) {
 
-$api_station = new clApi('https://api.trafiklab.se/sl/realtid/GetSite.xml?stationSearch='.station.'&key='.$api_key);
-$slstation = $api_station->parse();
+//$api_station = new clApi('https://api.trafiklab.se/sl/realtid/GetSite.xml?stationSearch='.station.'&key='.$api_key);
+$api_station = new clApi('https://api.sl.se/api2/typeahead.xml?searchstring='.$station.'&maxresults=1&key='.$site_key);
+
+$slstation1 = $api_station->parse();
+$slstation = $slstation1->get('ResponseData');
 
 $slbusesmetros = array();
 
-foreach($slbuses->get('DpsBus') as $bus):
+foreach($sl->get('Buses') as $bus):
   $diff = strtotime($bus->get('ExpectedDateTime'))-mktime(date("s"), date("i"), date("h"), date("m")  , date("d"), date("Y"));
 	$years   = floor($diff / (365*60*60*24)); 
 	$months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
@@ -51,8 +62,8 @@ foreach($slbuses->get('DpsBus') as $bus):
                                      "departure" => $minutes
                                     ));
 endforeach;
-foreach ($slmetros->get('Metro') as $metro):
-    $disprow2 = $metro->get('DisplayRow2');
+foreach ($sl->get('Metros') as $metro):
+    /*$disprow2 = $metro->get('DisplayRow2');
     $ptrn_times = "/[a-zA-ZåäöÅÄÖ .]+/"; //Gives times
     $ptrn_names = "/[0-9]+/"; //Gives names
     $matches_times = preg_split($ptrn_times, $disprow2, NULL, PREG_SPLIT_OFFSET_CAPTURE);
@@ -84,9 +95,29 @@ foreach ($slmetros->get('Metro') as $metro):
                                      "line" => $metro->get('GroupOfLine'),
                                      "departure" => $matches_times[3][0]
                                     ));
+    */
+    
+    $diff = strtotime($metro->get('DisplayTime'))-mktime(date("s"), date("i"), date("h"), date("m")  , date("d"), date("Y"));
+	$years   = floor($diff / (365*60*60*24)); 
+	$months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
+	$days    = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));
+
+	$hours   = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - 	$days*60*60*24)/ (60*60)); 
+
+	$minutes  = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - 	$days*60*60*24 - $hours*60*60)/ 60); 
+
+	$seconds = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24 - 	$days*60*60*24 - $hours*60*60 - $minutes*60));
+	
+    array_push($slbusesmetros, array("transport" => $metro->get('TransportMode'),
+                                     "name" => $metro->get('Destination'),
+                                     "line" => $metro->get('GroupOfLine'),
+                                     //"departure" => (date("i", strtotime($bus->get('ExpectedDateTime'))) - date("i"))-1
+                                     "departure" => $minutes
+                                    ));
+    
 endforeach;
 
-foreach ($slbuses->get('DpsTram') as $tram):
+foreach ($sl->get('Trams') as $tram):
 	$diff = strtotime($tram->get('ExpectedDateTime'))-mktime(date("s"), date("i"), date("h"), date("m")  , date("d"), date("Y"));
 	$years   = floor($diff / (365*60*60*24)); 
 	$months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
@@ -106,7 +137,7 @@ foreach ($slbuses->get('DpsTram') as $tram):
                                     ));
 endforeach;
 
-foreach ($slbuses->get('DpsTrain') as $train):
+foreach ($sl->get('Trains') as $train):
 	$diff = strtotime($train->get('ExpectedDateTime'))-mktime(date("s"), date("i"), date("h"), date("m")  , date("d"), date("Y"));
 	$years   = floor($diff / (365*60*60*24)); 
 	$months  = floor(($diff - $years * 365*60*60*24) / (30*60*60*24)); 
@@ -148,7 +179,7 @@ aasort($slbusesmetros,"departure");
     <tr>
         <th style="width:3%"></th>
         <th style="width:75px;text-align:center"><img src="http://images2.wikia.nocookie.net/__cb20100824161519/logopedia/images/c/ca/SL_logo.svg" height="30px" /></th>
-        <th style="padding-left:20"><?php echo 'Avgångar för: '.$slstation->get('Name').' om '.$distance.' min'; ?></th>
+        <th style="padding-left:20"><?php echo 'Avgångar för: '.$slstation[0]->get('Name').' om '.$distance.' min'; ?></th>
         <th style="width:12%;text-align:center">min.</th>
     </tr>
 <?php foreach($slbusesmetros as $dps): 
